@@ -14,16 +14,17 @@
 StepMotor mixser(25,33);
 StepMotor peripheral(26,32);
 StepMotor piston(27,35);
-double pistonCurHeight = 0;/// tbd
-double pistonMinHeight = 0;/// tbd
-double pistonMaxHeight = 17;/// tbd   
+bool mixedCapsule = false;
+double pistonMinHeight = 14;
+double pistonCurHeight = pistonMinHeight;
+double pistonMaxHeight = 26.5; 
 double circleNumLeds = 8; 
 int amount = 1;
 int amountFeedback = 1;
 int maxAmount = ((pistonMaxHeight - pistonCurHeight)/(pistonMaxHeight - pistonMinHeight))*circleNumLeds ;
 //MOTOR PINS
-#define TRAY_DIR_IN 23
-#define TRAY_DIR_OUT 17
+#define TRAY_DIR_IN 17
+#define TRAY_DIR_OUT 23
 INA226 TrayIna;
 #define mixserDCPin1 18
 #define mixserDCPin2 19
