@@ -107,8 +107,6 @@ void setup() {
   Serial.println("HOMING COMPLITED");
 }
 void loop() {
-  piston.readEncoder();
-  Serial.println(piston.getPos());
   switch (stage) {
     case 'm': //mixsing
       if (stageFeedback != stage) {
@@ -164,7 +162,6 @@ void loop() {
   } 
   stateMachine();
   EVERY_N_MILLISECONDS( 50 ) {
-    // Serial.print(trayClosed);
     sendToEsp8266();
     if(amountFeedback != amount) SerialBT.print(set_amount + amount +"\n");
   }

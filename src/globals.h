@@ -17,7 +17,7 @@ StepMotor piston(27,35);
 bool mixedCapsule = false;
 double pistonMinHeight = 14;
 double pistonCurHeight = pistonMinHeight;
-double pistonMaxHeight = 26.5; 
+double pistonMaxHeight = 25.4; 
 double circleNumLeds = 8; 
 int amount = 1;
 int amountFeedback = 1;
