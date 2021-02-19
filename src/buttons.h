@@ -28,6 +28,7 @@ String hxToButtonName(int hx, String unableArry[]) {
 String buttonsPreesed(String unableArry[]){
   String result ="";
   String buttons = hxToButtonName(readWireData(buttonsAddress), unableArry);
+  //Serial.println(buttons);
   if(buttons.length() >= 2) return result;
   if(isInString(buttons ,'T')&& (trayClosed ||trayOpen)){
     if( millis() - TPressedTimer >= buttonPreesedTime){
@@ -82,7 +83,7 @@ String buttonsPreesed(String unableArry[]){
   }
   else pPressedTimer = millis(); 
   if(isInString(buttons ,'b')){
-    if( millis() - bPressedTimer >= buttonPreesedTime){
+    if( millis() - bPressedTimer >= buttonPreesedTime + 300){
       bPressedTimer = millis();
       result += "b";
     }

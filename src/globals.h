@@ -67,7 +67,7 @@ unsigned int pPressedTimer = 0;
 unsigned int bPressedTimer = 0;
 unsigned int SPressedTimer = 0;
 unsigned int SSecondPressedTimer = 0;
-unsigned int buttonPreesedTime = 200;
+unsigned int buttonPreesedTime = 150;
 unsigned long trayClosedTime  = 0;
 unsigned long mixsingT ;
 unsigned long addSubTime  = 0;

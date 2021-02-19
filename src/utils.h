@@ -31,3 +31,15 @@ bool AddToEndOfWifiData(char a) {
 void AddStringToEndOfWifiData(String s) {
   for (int i = 0; i < s.length(); i++)AddToEndOfWifiData(s[i]);
 }
+void readSensors() {
+  //int Rghx1A = readWireData(0x1A);
+  int Rghx18 = readWireData(sensorAddress);
+  trayClosed =((Rghx18 >> 3) % 2);
+  trayOpen = ((Rghx18 >> 4) % 2);
+  capsuleInterface1 = ((Rghx18 >> 5) % 2);
+  capsuleInterface2 = ((Rghx18 >> 6) % 2);
+  piston.setOptic((Rghx18 >> 1) % 2);
+  peripheral.setOptic((Rghx18 >> 2) % 2);
+  mixser.setOptic((Rghx18 >> 0) % 2);
+
+}

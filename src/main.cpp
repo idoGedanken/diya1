@@ -104,7 +104,7 @@ void setup() {
   setStepMotorDirs();
   homing();
   disableMotors();
-  Serial.println("HOMING COMPLITED");
+  //Serial.println("HOMING COMPLITED");
 }
 void loop() {
   switch (stage) {
