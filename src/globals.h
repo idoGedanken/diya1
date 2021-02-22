@@ -14,10 +14,16 @@
 StepMotor mixser(25,33);
 StepMotor peripheral(26,32);
 StepMotor piston(27,35);
+
+double  peripheralCellsHeight = 13.5 ;
+double  mixserInterfaceHeight = 24;
+double  mixsingMaxHight = 20 ;
+double  mixsingMinHight = 8 ;
 bool mixedCapsule = false;
 double pistonMinHeight = 14;
 double pistonCurHeight = pistonMinHeight;
-double pistonMaxHeight = 25.4; 
+double pistonMaxHeight = 25.3; 
+double mixserMaxHeight = pistonMaxHeight + 4; 
 double circleNumLeds = 8; 
 int amount = 1;
 int amountFeedback = 1;
@@ -105,9 +111,25 @@ typedef struct struct_message {
 } struct_message;
 struct_message wifiData;
 struct_message wifiDataFeedback;
-// REPLACE WITH YOUR RECEIVER MAC Address  84:CC:A8:A8:E8:56
-uint8_t broadcastAddress[] = {0x84, 0xCC, 0xA8, 0x9F, 0xEE, 0x62};
-// { 0x84, 0xCC, 0xA8, 0xA8, 0xE8, 0x56} - black
+// REPLACE WITH YOUR RECEIVER MAC Address  84:F3:EB:DC:E4:26
+uint8_t broadcastAddress[] = {0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26};
+// { 0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26} - black
 //{0x84, 0xCC, 0xA8, 0x9F, 0xEE, 0x62} - white
 
 
+
+
+
+
+
+
+// 9 calls
+// double  peripheralCellsHeight = 17 ;
+// double  mixserInterfaceHeight = 28;
+// double  mixsingMaxHight = 27 ;
+// double  mixsingMinHight = 8 ;
+// bool mixedCapsule = false;
+// double pistonMinHeight = 18.5;
+// double pistonCurHeight = pistonMinHeight;
+// double pistonMaxHeight = 33; 
+// double mixserMaxHeight = pistonMaxHeight + 4; 

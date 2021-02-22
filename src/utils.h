@@ -36,10 +36,28 @@ void readSensors() {
   int Rghx18 = readWireData(sensorAddress);
   trayClosed =((Rghx18 >> 3) % 2);
   trayOpen = ((Rghx18 >> 4) % 2);
-  capsuleInterface1 = ((Rghx18 >> 5) % 2);
-  capsuleInterface2 = ((Rghx18 >> 6) % 2);
+  capsuleInterface1 = (!((Rghx18 >> 5)%2));
+  capsuleInterface2 = (((Rghx18 >> 6)%2));
   piston.setOptic((Rghx18 >> 1) % 2);
   peripheral.setOptic((Rghx18 >> 2) % 2);
   mixser.setOptic((Rghx18 >> 0) % 2);
 
+}
+void printStatos(){
+  int Rghx18 = readWireData(sensorAddress);
+  // Serial.print("trayClosed ");
+  // Serial.println((Rghx18 >> 3) % 2);
+  // Serial.print("trayOpen ");
+  // Serial.println ((Rghx18 >> 4) % 2);
+  Serial.print("capsuleInterface1 ");
+  Serial.println (!((Rghx18 >> 5)%2));
+  Serial.print("capsuleInterface2 ");
+  Serial.println (((Rghx18 >> 6)%2));
+  // Serial.print("piston ");
+  // Serial.println((Rghx18 >> 1) % 2);
+  // Serial.print("peripheral ");
+  // Serial.println((Rghx18 >> 2) % 2);
+  // Serial.print("mixser ");
+  // Serial.println((Rghx18 >> 0) % 2);
+  Serial.println("---------------------------------------");
 }

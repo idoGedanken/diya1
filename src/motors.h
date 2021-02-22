@@ -2,12 +2,19 @@
 void moveTray(){
   //if(!capsuleInterface1 && !capsuleInterface2){
     if(trayDirection && !trayClosed  ) {
-      analogWrite(TRAY_DIR_IN,200);
+      analogWrite(TRAY_DIR_IN,255);
       analogWrite(TRAY_DIR_OUT,0);
    } 
    else if(!trayDirection && !trayOpen){
-      analogWrite(TRAY_DIR_OUT,200);
+     if(0){
+      analogWrite(TRAY_DIR_OUT,0);
       analogWrite(TRAY_DIR_IN,0); 
+      //shirscode();
+     }
+     else{
+      analogWrite(TRAY_DIR_OUT,255);
+      analogWrite(TRAY_DIR_IN,0); 
+     }
     }
   // }
   else{
@@ -38,9 +45,10 @@ void disableMotors(){
     mixser.setDirFeedback(!mixser.getDir());
     piston.setDirFeedback(!piston.getDir());
 }
+
 void setStepMotorDirs() {
   if (mixser.getDir() != mixser.getDirFeedback() || peripheral.getDirFeedback() != peripheral.getDir() ||  piston.getDirFeedback() != piston.getDir()) {
-    int PCAdata = 0b111110;
+    int PCAdata = 0b111000;
     if (mixser.getDir())PCAdata -= 0b1000;
     if (peripheral.getDir())PCAdata -= 0b10000;
     if (piston.getDir())PCAdata -= 0b100000 ;
@@ -62,8 +70,6 @@ bool moveStep(StepMotor &motor,double speeed, double TargetPos ){
 
 void homing() {
   bool redSensors = true;
-  double pistonPosFeedback = piston.getPos();
-  double pistonLestMove = micros();
   bool pistonStuk = false;
   bool pistonIsHome = false;
   while (!mixser.getOptic() || !peripheral.getOptic() || !pistonIsHome) {
@@ -72,15 +78,13 @@ void homing() {
     redSensors = true;}
     if (!peripheral.getOptic()) moveStep(peripheral,2.5, -669);//random high number
     if(!pistonStuk && !pistonIsHome){
-        moveStep(piston,2,-669);//random high number
-        if(pistonPosFeedback != piston.getPos())pistonLestMove = micros();
-        if(micros() - pistonLestMove > 30000 && !redSensors){
-        pistonStuk = true;
-        piston.setPos(0);
+        moveStep(piston,2.5,-669);//random high number
+        if(piston.isMotorStuck(350000,redSensors)){
+          pistonStuk = true;
+          piston.setPos(0);
         }
-        pistonPosFeedback = piston.getPos();
     }
-    if(pistonStuk) if(moveStep(piston,2.5,1)) pistonIsHome = true;
+    if(pistonStuk) if(moveStep(piston,2.5,0.2)) pistonIsHome = true;
     if (!mixser.getOptic()) {
       spinMixser(-150);
       moveStep(mixser,2.5, -669);//random high number
@@ -90,20 +94,25 @@ void homing() {
   }
 }
 
+
 void mix(){
   homing();
-  double peripheralCellsHeight = 19.15;
+  double surface = 6;
   bool redSensors = true;
-  int mixserLestMove = micros();
-  double mixserPosFeedback = 0;
-  int mixsingStage = 4;
+  int mixsingStage = 0;
   int interfaceAtempts = 0;
   int mixsingCycles = 2;
   int curentMixsingCycles = 0;
-  if(mixedCapsule) mixsingCycles= 1;
+  if(mixedCapsule) mixsingCycles = 1;
   while(mixsingStage < 668){
     EVERY_N_MILLISECONDS( 100 ) {
-    Serial.println(mixser.getPos());
+    printStatos();
+    // Serial.print(mixser.getPos());
+    // Serial.println("  mixser");
+    // Serial.print(piston.getPos());
+    // Serial.println("  piston");
+    // Serial.print(peripheral.getPos());
+    // Serial.println("  peripheral");
     readSensors();
     redSensors = true;
     }
@@ -113,59 +122,64 @@ void mix(){
         mixsingStage = 669;// high random number to get out of the while loop
         break;
       case 0://tring to interface
-        spinMixser(150);
-        moveStep(peripheral,2.5,10);
-        moveStep(piston,2.5,5);
-        if(moveStep(mixser,2.5,27))mixsingStage++;
+        //spinMixser(200);
+        moveStep(peripheral,2.5,surface);
+        if(moveStep(mixser,2.5,mixserInterfaceHeight))mixsingStage++;
         break;
-      case 1://chaking if interface hapend 
+      case 1://tring to interface
+        spinMixser(200);
+        delay(300);
+        mixsingStage++;
+        break;
+      case 2://chaking if interface hapend 
         spinMixser(150);
         if(moveStep(mixser,2.5,6)){
-          if(capsuleInterface1){
+          if(capsuleInterface2){
             if (mixedCapsule) mixsingStage += 2; 
             else mixsingStage++;
           }
           else{
             interfaceAtempts ++;
             if(interfaceAtempts >= 2) mixsingStage = -1;//pas the max atemps so go homing
-            else mixsingStage--;
+            else mixsingStage -= 2;
           }
         }
         break;
-      case 2://Pushes the material 
+      case 3://Pushes the material 
+        moveStep(mixser,2.5,1);
         spinMixser(0);
-        if(moveStep(peripheral,2.5,peripheralCellsHeight))mixsingStage++;
+        moveStep(peripheral,2.5,669);
+        if(peripheral.isMotorStuck(350000,redSensors))mixsingStage++;
         break;
-      case 3://mixsing
+      case 4://mixsing
         spinMixser(255);
         if(curentMixsingCycles == 2*mixsingCycles)mixsingStage++;
         if(curentMixsingCycles%2 == 0){
-          if(moveStep(mixser,2.5,24)){
+          if(moveStep(mixser,2.5,mixsingMaxHight)){
             curentMixsingCycles++;
           }
         }
         else{
-          if(moveStep(mixser,2.5,12)){
+          if(moveStep(mixser,2.5,mixsingMinHight)){
           curentMixsingCycles++;
           }
         }
         break;
-      case 4://penetration
-        spinMixser(150);
-        if(moveStep(mixser,2.5,29.5))mixsingStage++;
-        break;
       case 5://penetration
+        spinMixser(255);
+        if(moveStep(mixser,2.5,mixsingMaxHight))mixsingStage++;
+        break;
+      case 6://penetration
         spinMixser(0);
         moveStep(mixser,2.5,669);//random high number
-        if(mixserPosFeedback != mixser.getPos())mixserLestMove = micros();
-        if(micros()-mixserLestMove > 1500000 && !redSensors)mixsingStage++;
-        mixserPosFeedback = mixser.getPos();
+        if(mixser.isMotorStuck(350000,redSensors))mixsingStage++;
         break;
-      case 6: //exstacting
+      case 7: //exstacting
         spinMixser(-150);
-        if(moveStep(mixser,2.5,19))mixsingStage++;
+        moveStep(piston,2.5,pistonCurHeight + amount*((pistonMaxHeight - pistonMinHeight)/circleNumLeds));
+        if(moveStep(mixser,2.5,mixsingMinHight - 2))mixsingStage++;
         break;
-      case 7: 
+      case 8: 
         spinMixser(0);
         if(moveStep(piston,2.5,pistonCurHeight + amount*((pistonMaxHeight - pistonMinHeight)/circleNumLeds))){
           pistonCurHeight = piston.getPos();
@@ -176,4 +190,28 @@ void mix(){
     redSensors = false;
   }
   disableMotors();
+}
+void TestCupsol(){
+  homing();
+  while(!moveStep(mixser, 2.5,23)){
+    EVERY_N_MILLISECONDS( 100 ) {
+    Serial.println(mixser.getPos());
+    readSensors();
+  }
+  }
+  spinMixser(255);
+  delay(500);
+  spinMixser(0);
+
+  while(!moveStep(mixser, 2.5,6)){
+    EVERY_N_MILLISECONDS( 100 ) {
+    Serial.println(mixser.getPos());
+    // Serial.println("mixser.getPos()");
+    // Serial.print(piston.getPos());
+    // Serial.println("piston.getPos()");
+    // Serial.println(peripheral.getPos());
+    // Serial.println("peripheral.getPos()");
+    readSensors();
+  }
+  }
 }

@@ -33,7 +33,7 @@ void stateMachine() {
       }
       break;
     case 'r'://Redy to mix
-      if (isInWifiData('P')) {
+      if (isInWifiData('P') && maxAmount != 0) {
         AddToEndOfWifiData('m');
         stage = 'm';
       }
@@ -96,15 +96,13 @@ void setup() {
   SPI.begin(14,12,13,15);                                                  // Init SPI bus
   mfrc522.PCD_Init();                                              // Init MFRC522 card
   Serial.println(F("Read personal data on a MIFARE PICC:")); 
-  Serial.println("Setup Complete.");
-  Serial.println("");
   delay(1000);
   Serial.println("SETUP COMPLITED");
   readSensors();
   setStepMotorDirs();
   homing();
   disableMotors();
-  //Serial.println("HOMING COMPLITED");
+  Serial.println("HOMING COMPLITED");
 }
 void loop() {
   switch (stage) {
@@ -128,6 +126,7 @@ void loop() {
         AddToEndOfWifiData('r');
         enabledButtonsArraySize = 6;
         String ButtonsArray[] = {"Play", "BT", "Battery", "Tray", "Add", "Sub"};
+        if(maxAmount == 0)ButtonsArray[0] = "BT";
         copyEnableArry(ButtonsArray);
       }
       moveTray();
@@ -162,6 +161,7 @@ void loop() {
   } 
   stateMachine();
   EVERY_N_MILLISECONDS( 50 ) {
+  //printStatos();
     sendToEsp8266();
     if(amountFeedback != amount) SerialBT.print(set_amount + amount +"\n");
   }
