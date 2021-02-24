@@ -103,6 +103,7 @@ void setup() {
   homing();
   disableMotors();
   Serial.println("HOMING COMPLITED");
+  //TestCupsol();
 }
 void loop() {
   switch (stage) {
@@ -117,7 +118,6 @@ void loop() {
         mix();
         mixedCapsule = true;
         maxAmount = ((pistonMaxHeight - pistonCurHeight)/(pistonMaxHeight - pistonMinHeight))*circleNumLeds ;
-        finishMixing = true;
       }
       break;
     case 'r'://Redy to mix
@@ -145,6 +145,7 @@ void loop() {
   readSensors();
   readButtons(enabledButtonsArray);
   BTRead();
+  trayDirectionFeedback =trayDirection;
   stageFeedback = stage;
   amountFeedback = amount;
   strcpy(wifiDataFeedback.a, wifiData.a);
@@ -161,7 +162,7 @@ void loop() {
   } 
   stateMachine();
   EVERY_N_MILLISECONDS( 50 ) {
-  //printStatos();
+    printStatos();
     sendToEsp8266();
     if(amountFeedback != amount) SerialBT.print(set_amount + amount +"\n");
   }

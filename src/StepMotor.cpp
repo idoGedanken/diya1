@@ -11,8 +11,9 @@ class StepMotor{
     int _motorPin;
     int _enPin;
     int _einFeedback;
-    double _lestStep;
-    double _motorStuckTime;
+    unsigned long _lestStep;
+    unsigned long _motorStuck;
+    unsigned long _motorStuckLastCall;
     bool _dir = true;
     bool _dirFeedback = false;
     bool _encoderFeedback;
@@ -27,7 +28,8 @@ class StepMotor{
     _motorPin = motorPin;
     _enPin = enPin;
     _lestStep = micros();
-    _motorStuckTime = 428859761399;
+    _motorStuckLastCall = 0;
+    _motorStuck = 0;
     }
     void setOptic(bool opticVal){_motorOptic = opticVal;}
     bool getOptic(){return _motorOptic;}
@@ -45,6 +47,7 @@ class StepMotor{
         bool encoderRead  = digitalRead(_enPin);
         if ( encoderRead != _encoderFeedback) {
             _encoderFeedback = encoderRead;
+            _motorStuck = 0;
             if (_dir) _pos += 0.0234;
             else _pos -= 0.0234;
             return;
@@ -55,25 +58,17 @@ class StepMotor{
         if (TargetPos < _pos)setDir(false);
         else if (TargetPos > _pos)setDir(true);      
     }
-    bool isMotorStuck(double time, bool ignore){
-        // Serial.println(_pos);
-        // Serial.println(_posFeedback);
-        //Serial.println(micros()- _motorStuckTime);
-        // Serial.println(_motorStuckTime);
-        // Serial.println(micros());
-        // Serial.println("-------------");
-        if(micros() - _motorStuckTime > 1000000)_motorStuckTime = micros();
-        return (micros() - _motorStuckTime >=  time && !ignore);
+    bool isMotorStuck(unsigned long time, bool ignore){
+        return _motorStuck > 70;
     }
     bool Move(double speeed, double TargetPos) {
     if(abs(TargetPos - _pos) <= 0.0234){
-        _motorStuckTime = micros();
         return true;
     }
     if ((micros() - _lestStep) > max((int)(625 / speeed), 150) && TargetPos != _pos) {
         digitalWrite(_motorPin, HIGH);
         digitalWrite(_motorPin, LOW);
-        if(_pos != _posFeedback) _motorStuckTime = micros();
+        _motorStuck ++;
         _lestStep =  micros();
     }
     return false;

@@ -15,14 +15,14 @@ StepMotor mixser(25,33);
 StepMotor peripheral(26,32);
 StepMotor piston(27,35);
 
-double  peripheralCellsHeight = 13.5 ;
-double  mixserInterfaceHeight = 24;
+double  peripheralCellsHeight = 16.5 ;
+double  mixserInterfaceHeight = 22.7;
 double  mixsingMaxHight = 20 ;
 double  mixsingMinHight = 8 ;
 bool mixedCapsule = false;
 double pistonMinHeight = 14;
 double pistonCurHeight = pistonMinHeight;
-double pistonMaxHeight = 25.3; 
+double pistonMaxHeight = 22.2; 
 double mixserMaxHeight = pistonMaxHeight + 4; 
 double circleNumLeds = 8; 
 int amount = 1;
@@ -86,6 +86,8 @@ bool trayOpen;
 bool capsuleInterface1;
 bool capsuleInterface2;
 bool trayDirection = true;
+bool trayDirectionFeedback = true;
+int traySpeed = 50;
 //******************BT************************************
 bool BTConected = false;
 bool BTConectedFeedback = false;
@@ -112,7 +114,7 @@ typedef struct struct_message {
 struct_message wifiData;
 struct_message wifiDataFeedback;
 // REPLACE WITH YOUR RECEIVER MAC Address  84:F3:EB:DC:E4:26
-uint8_t broadcastAddress[] = {0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26};
+uint8_t broadcastAddress[] = { 0x84, 0xCC, 0xA8, 0x9F, 0xEE, 0x62};
 // { 0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26} - black
 //{0x84, 0xCC, 0xA8, 0x9F, 0xEE, 0x62} - white
 
@@ -122,7 +124,16 @@ uint8_t broadcastAddress[] = {0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26};
 
 
 
-
+//6 high call 
+// double  peripheralCellsHeight = 13.5 ;
+// double  mixserInterfaceHeight = 22.7;
+// double  mixsingMaxHight = 20 ;
+// double  mixsingMinHight = 8 ;
+// bool mixedCapsule = false;
+// double pistonMinHeight = 14;
+// double pistonCurHeight = pistonMinHeight;
+// double pistonMaxHeight = 25.3; 
+// double mixserMaxHeight = pistonMaxHeight + 4; 
 // 9 calls
 // double  peripheralCellsHeight = 17 ;
 // double  mixserInterfaceHeight = 28;
