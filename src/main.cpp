@@ -1,9 +1,8 @@
 #include "Arduino.h"
 #include "buttons.h"
-// wireCom -> globals -> utils -> BTcom -> RFread -> motors -> buttons
+// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom -> RFread -> motors -> buttons
 
 void sendToEsp8266() {
-//  if(wifiData.a != " ")Serial.println(wifiData.a);
   if (isInWifiData('A'))amount += 1;
   if (isInWifiData('S')) amount -= 1;
   amount = min(maxAmount,max(0,amount));
@@ -16,7 +15,6 @@ void sendToEsp8266() {
   else Serial.println("Error sending the data");
 }
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  //Serial.println(wifiData.a);
   wifisStatus = status == ESP_NOW_SEND_SUCCESS ? "S" : "F";
 }
 
@@ -24,9 +22,6 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 void stateMachine() {
   switch (stage) {
     case 'm': //mixsing
-      if ((millis() - mixsingT) > 95000 + 10000/* + amount*5000*/) {
-       finishMixing = true;
-      }
       if (finishMixing) {
         AddToEndOfWifiData('r');
         stage = 'r';
@@ -93,10 +88,15 @@ void setup() {
     return;
   }
    //******************* RFID SETUP *************************
+  Serial.begin(9600);                                           // Initialize serial communications with the PC
   SPI.begin(14,12,13,15);                                                  // Init SPI bus
-  mfrc522.PCD_Init();                                              // Init MFRC522 card
-  Serial.println(F("Read personal data on a MIFARE PICC:")); 
-  delay(1000);
+  mfrc522.PCD_Init();
+  if (!SPIFFS.begin(true)){
+    Serial.println("Error: mounting SPIFFS");
+    return;
+  }        
+   //******************* motors SETUP *************************
+
   Serial.println("SETUP COMPLITED");
   readSensors();
   setStepMotorDirs();
@@ -116,8 +116,11 @@ void loop() {
         copyEnableArry(ButtonsArray);
         sendToEsp8266();
         mix();
-        mixedCapsule = true;
-        maxAmount = ((pistonMaxHeight - pistonCurHeight)/(pistonMaxHeight - pistonMinHeight))*circleNumLeds ;
+        finishMixing = true;
+        maxAmount = circleNumLeds - amuntUsed ;
+        cap->setParam("CapType",(unsigned int)1);
+        cap->setParam("currentAmount",(unsigned int)amuntUsed);
+        cap->setParam("mixed",(unsigned int)mixedCapsule);
       }
       break;
     case 'r'://Redy to mix
@@ -131,7 +134,8 @@ void loop() {
       }
       moveTray();
       break;
-    case'i':
+    case 'i':
+
       if (stageFeedback != stage) {
         AddToEndOfWifiData('i');
         //mAddToEndOfWifiData('b');
@@ -145,7 +149,6 @@ void loop() {
   readSensors();
   readButtons(enabledButtonsArray);
   BTRead();
-  trayDirectionFeedback =trayDirection;
   stageFeedback = stage;
   amountFeedback = amount;
   strcpy(wifiDataFeedback.a, wifiData.a);

@@ -9,6 +9,7 @@
 #include <MFRC522.h>
 #include <INA226.h>
 #include <StepMotor.cpp>
+#include "SPIFFS.h"
 #include "wireCom.h"
 
 StepMotor mixser(25,33);
@@ -21,13 +22,13 @@ double  mixsingMaxHight = 20 ;
 double  mixsingMinHight = 8 ;
 bool mixedCapsule = false;
 double pistonMinHeight = 14;
-double pistonCurHeight = pistonMinHeight;
+int amuntUsed = 0;
 double pistonMaxHeight = 22.2; 
 double mixserMaxHeight = pistonMaxHeight + 4; 
 double circleNumLeds = 8; 
 int amount = 1;
 int amountFeedback = 1;
-int maxAmount = ((pistonMaxHeight - pistonCurHeight)/(pistonMaxHeight - pistonMinHeight))*circleNumLeds ;
+int maxAmount = ((pistonMaxHeight - amuntUsed)/(pistonMaxHeight - pistonMinHeight))*circleNumLeds ;
 //MOTOR PINS
 #define TRAY_DIR_IN 17
 #define TRAY_DIR_OUT 23
@@ -44,21 +45,24 @@ int enabledButtonsArraySize = 0;
 char stage = 'i';
 char stageFeedback = 'f';
 //******************* RFID CONFIG *************************
-#define RST_PIN         16    // Configuration
-#define SS_PIN          15   
+#define RST_PIN         16   // Configuration
+#define SS_PIN          15  
 #define MAP_SIZE 50 // Amount of bits to write to the rfid
 #define END_BLOCK 44 // End of user-data
-MFRC522 mfrc522(SS_PIN, RST_PIN);// Create MFRC522 instance
-MFRC522::MIFARE_Key key;
-MFRC522::StatusCode status;
-byte buff[18];
-//byte writeBlock[18] = {0x68, 0x65, 0x79,0x02};
-byte data[45][4]; // data on chip , used for reading,writing
-byte value[18];
-byte* blockRes; // result of reading
-//String blockaAscii;// result of reading in ascii
-uint8_t pageAddr = 0x03;// page we start our reading from
-byte size1 = sizeof(buff);
+
+ MFRC522 mfrc522(SS_PIN, RST_PIN);// Create MFRC522 instance
+ MFRC522::MIFARE_Key key;
+ MFRC522::StatusCode status;
+ byte buff[18];
+ byte writeBlock[18] = {0x68, 0x65, 0x79,0x02};
+ byte data[45][4]; // data on chip , used for reading,writing
+ byte value[18];
+ byte* blockRes; // result of reading
+ String blockaAscii;// result of reading in ascii
+ uint8_t pageAddr = 0x03;// page we start our reading from
+ byte size1 = sizeof(buff);
+ String flashParams[]={"CapType","currentAmount","hight","mixed"};
+bool writeDataStatus = false;
 int RFIntID = 2201;
 int RFIntIDArray[] ={2201,2185,2187};
 CRGB RFIDColor[] = {CRGB(0, 0, 255),CRGB(255, 102, 255),CRGB(204, 255, 51)};
@@ -85,8 +89,7 @@ bool trayClosed  = true;
 bool trayOpen;
 bool capsuleInterface1;
 bool capsuleInterface2;
-bool trayDirection = true;
-bool trayDirectionFeedback = true;
+bool trayDirection = false;
 int traySpeed = 50;
 //******************BT************************************
 bool BTConected = false;
@@ -125,15 +128,7 @@ uint8_t broadcastAddress[] = { 0x84, 0xCC, 0xA8, 0x9F, 0xEE, 0x62};
 
 
 //6 high call 
-// double  peripheralCellsHeight = 13.5 ;
-// double  mixserInterfaceHeight = 22.7;
-// double  mixsingMaxHight = 20 ;
-// double  mixsingMinHight = 8 ;
-// bool mixedCapsule = false;
-// double pistonMinHeight = 14;
-// double pistonCurHeight = pistonMinHeight;
-// double pistonMaxHeight = 25.3; 
-// double mixserMaxHeight = pistonMaxHeight + 4; 
+
 // 9 calls
 // double  peripheralCellsHeight = 17 ;
 // double  mixserInterfaceHeight = 28;
@@ -141,6 +136,6 @@ uint8_t broadcastAddress[] = { 0x84, 0xCC, 0xA8, 0x9F, 0xEE, 0x62};
 // double  mixsingMinHight = 8 ;
 // bool mixedCapsule = false;
 // double pistonMinHeight = 18.5;
-// double pistonCurHeight = pistonMinHeight;
+// double amuntUsed = pistonMinHeight;
 // double pistonMaxHeight = 33; 
 // double mixserMaxHeight = pistonMaxHeight + 4; 

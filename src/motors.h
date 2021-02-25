@@ -1,33 +1,39 @@
 #include "RFread.h"
 void moveTray(){
   //if(!capsuleInterface1 && !capsuleInterface2){
-    if(trayDirection != trayDirectionFeedback ) traySpeed = 50;
-    traySpeed = min(traySpeed + 1,200);
-    // Serial.println(traySpeed);
-    // Serial.println(trayDirection);
+  traySpeed = min(max(traySpeed + 15,100),200);
+  // Serial.println(traySpeed);
+  // Serial.println(trayDirection);
 
-    if(trayDirection && !trayClosed ) {
-      analogWrite(TRAY_DIR_IN,traySpeed);
-      analogWrite(TRAY_DIR_OUT,0);
-   } 
-   else if(!trayDirection && !trayOpen){
-     if(0){
-      analogWrite(TRAY_DIR_OUT,0);
-      analogWrite(TRAY_DIR_IN,0); 
-      //shirscode();
-     }
-     else{
-      analogWrite(TRAY_DIR_OUT,traySpeed);
-      analogWrite(TRAY_DIR_IN,0); 
-     }
-    }
-  // }
-  else{
+  if(trayDirection && !trayClosed ) {
+    analogWrite(TRAY_DIR_IN,traySpeed);
     analogWrite(TRAY_DIR_OUT,0);
-    analogWrite(TRAY_DIR_IN,0);
+    if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()){
+        readData();
+        SetCapsulParams();
+        Serial.println( cap->getParam("CapType"));
+        Serial.println( cap->getParam("currentAmount"));
+        Serial.println( cap->getParam("mixed"));
+        
+    }
+    writeDataStatus = false;
+  } 
+  else if(!trayDirection && !trayOpen){
+    analogWrite(TRAY_DIR_OUT,traySpeed);
+    analogWrite(TRAY_DIR_IN,0); 
+    if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) writeDataStatus = writeDataStatus||writeData();
+    
+    }
+// }
+else{
+  if(!writeDataStatus){}//writeToFlash(createWriteBuffer(),getParam("UID"));
+  writeDataStatus = false;
+  traySpeed = 50;
+  analogWrite(TRAY_DIR_OUT,0);
+  analogWrite(TRAY_DIR_IN,0);
   }
- //if(abs(TrayIna.readShuntCurrent() > 0.16)) trayClosed = true;
- //if(!trayDirection) trayClosed = false;
+//if(abs(TrayIna.readShuntCurrent() > 0.16)) trayClosed = true;
+//if(!trayDirection) trayClosed = false;
 }
 void spinMixser(int sped){
   if(sped > 0){
@@ -102,6 +108,7 @@ void homing() {
 
 void mix(){
   homing();
+  double tank = pistonMaxHeight - pistonMinHeight;
   double surface = 9;
   bool redSensors = true;
   int mixsingStage = 0;
@@ -144,6 +151,7 @@ void mix(){
             else mixsingStage++;
           }
           else{
+            spinMixser(0);
             interfaceAtempts ++;
             if(interfaceAtempts >= 2) mixsingStage = -1;//pas the max atemps so go homing
             else mixsingStage -= 2;
@@ -170,7 +178,7 @@ void mix(){
         }
         break;
       case 5://penetration
-        finishMixing = true;
+        mixedCapsule = true;
         spinMixser(255);
         if(moveStep(mixser,2.5,mixsingMaxHight))mixsingStage++;
         break;
@@ -186,13 +194,13 @@ void mix(){
       case 8: 
         if(piston.getPos()< pistonMaxHeight-2)spinMixser(-200);
         else spinMixser(0);
-        if(moveStep(piston,2.5,pistonCurHeight + amount*((pistonMaxHeight - pistonMinHeight)/circleNumLeds)) || piston.isMotorStuck(-1,redSensors)){
-          pistonCurHeight = piston.getPos();
+        if(moveStep(piston,2.5,pistonMinHeight + tank*(amuntUsed+amount)/circleNumLeds) || piston.isMotorStuck(-1,redSensors)){
+          amuntUsed = amuntUsed+amount;
           mixsingStage++;
         }
         break;
       case 9: //exstacting
-        spinMixser(-150);
+        spinMixser(0);
         moveStep(mixser,2.5,0);
         moveStep(piston,2.5,1);
         moveStep(peripheral,2.5,0);

@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "RFID/capsuleAPI.h"
 int findNumInArray(int num, int arr[]){
   for(int i = 0;i < 3; i++) if(arr[i] == num) return i;
   return 0;
@@ -32,7 +32,6 @@ void AddStringToEndOfWifiData(String s) {
   for (int i = 0; i < s.length(); i++)AddToEndOfWifiData(s[i]);
 }
 void readSensors() {
-  //int Rghx1A = readWireData(0x1A);
   int Rghx18 = readWireData(sensorAddress);
   trayClosed =((Rghx18 >> 3) % 2);
   trayOpen = ((Rghx18 >> 4) % 2);
@@ -60,4 +59,42 @@ void printStatos(){
   // Serial.print("mixser ");
   // Serial.println((Rghx18 >> 0) % 2);
   // Serial.println("---------------------------------------");
+}
+void SetCapsulParams(){
+    mixedCapsule = cap->getParam("mixed") >= 1;
+    amuntUsed = cap->getParam("currentAmount");
+    maxAmount = circleNumLeds - amuntUsed;
+  switch (cap->getParam("CapType")) {
+  case 0://6 cals small
+    peripheralCellsHeight = 16.5 ;
+    mixserInterfaceHeight = 22.5;
+    mixsingMaxHight = 20 ;
+    mixsingMinHight = 8 ;
+    pistonMinHeight = 14;
+    pistonMaxHeight = 22.2; 
+    mixserMaxHeight = pistonMaxHeight + 4; 
+    break;
+  case 1://6 cals mid
+    peripheralCellsHeight = 13.5 ;
+    mixserInterfaceHeight = 22.5;
+    mixsingMaxHight = 20 ;
+    mixsingMinHight = 8 ;
+    pistonMinHeight = 14;
+    pistonMaxHeight = 25.3; 
+    mixserMaxHeight = pistonMaxHeight + 4;  
+  break;
+  case 2://6 cals mid
+    peripheralCellsHeight = 13.5 ;
+    mixserInterfaceHeight = 22.5;
+    mixsingMaxHight = 20 ;
+    mixsingMinHight = 8 ;
+    pistonMinHeight = 14;
+    pistonMaxHeight = 25.3; 
+    mixserMaxHeight = pistonMaxHeight + 4;  
+  break;
+  default:
+    // statements
+    break;
+}
+
 }
