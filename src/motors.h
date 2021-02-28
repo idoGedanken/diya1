@@ -1,10 +1,11 @@
 #include "RFread.h"
 void moveTray(){
-  //if(!capsuleInterface1 && !capsuleInterface2){
-  traySpeed = min(max(traySpeed + 15,100),200);
-  // Serial.println(traySpeed);
-  // Serial.println(trayDirection);
-
+  traySpeed = min(max(traySpeed + 1,180),255);
+  if(abs(TrayIna.readShuntCurrent()) > max(0.18,traySpeed/1000.0) && !trayClosed){EVERY_N_MILLISECONDS(200){
+    trayDirection = true^trayDirection;
+    traySpeed = 0;
+    }
+    }
   if(trayDirection && !trayClosed ) {
     analogWrite(TRAY_DIR_IN,traySpeed);
     analogWrite(TRAY_DIR_OUT,0);
@@ -22,18 +23,17 @@ void moveTray(){
     analogWrite(TRAY_DIR_OUT,traySpeed);
     analogWrite(TRAY_DIR_IN,0); 
     if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) writeDataStatus = writeDataStatus||writeData();
-    
     }
 // }
 else{
   if(!writeDataStatus){}//writeToFlash(createWriteBuffer(),getParam("UID"));
   writeDataStatus = false;
-  traySpeed = 50;
+  traySpeed = 0;
   analogWrite(TRAY_DIR_OUT,0);
   analogWrite(TRAY_DIR_IN,0);
   }
-//if(abs(TrayIna.readShuntCurrent() > 0.16)) trayClosed = true;
-//if(!trayDirection) trayClosed = false;
+
+
 }
 void spinMixser(int sped){
   if(sped > 0){
@@ -80,17 +80,16 @@ bool moveStep(StepMotor &motor,double speeed, double TargetPos ){
 }
 
 void homing() {
-  bool redSensors = true;
   bool pistonStuk = false;
   bool pistonIsHome = false;
   while (!mixser.getOptic() || !peripheral.getOptic() || !pistonIsHome) {
-    EVERY_N_MILLISECONDS( 100 ) {
+    EVERY_N_MILLISECONDS( 50 ) {
     readSensors();
-    redSensors = true;}
+    }
     if (!peripheral.getOptic()) moveStep(peripheral,2.5, -669);//random high number
     if(!pistonStuk && !pistonIsHome){
         moveStep(piston,2.5,-669);//random high number
-        if(piston.isMotorStuck(-1,redSensors)){
+        if(piston.isMotorStuck(-1)){
           pistonStuk = true;
           piston.setPos(0);
         }
@@ -101,7 +100,6 @@ void homing() {
       moveStep(mixser,2.5, -669);//random high number
     }
     else spinMixser(0);
-    redSensors = false;
   }
 }
 
@@ -110,7 +108,6 @@ void mix(){
   homing();
   double tank = pistonMaxHeight - pistonMinHeight;
   double surface = 9;
-  bool redSensors = true;
   int mixsingStage = 0;
   int interfaceAtempts = 0;
   int mixsingCycles = 2;
@@ -126,7 +123,6 @@ void mix(){
     // Serial.print(peripheral.getPos());
     // Serial.println("  peripheral");
     readSensors();
-    redSensors = true;
     }
     switch (mixsingStage) {
       case -1://exsit stage
@@ -161,7 +157,7 @@ void mix(){
       case 3://Pushes the material 
         //moveStep(mixser,2.5,1);
         spinMixser(0);        
-        if(peripheral.isMotorStuck(-1,redSensors)||moveStep(peripheral,2.5,peripheralCellsHeight))mixsingStage++;
+        if(peripheral.isMotorStuck(-1)||moveStep(peripheral,2.5,peripheralCellsHeight))mixsingStage++;
         break;
       case 4://mixsing
         spinMixser(255);
@@ -185,7 +181,7 @@ void mix(){
       case 6://penetration
         spinMixser(0);
         moveStep(mixser,2.5,669);//random high number
-        if(mixser.isMotorStuck(-1,redSensors))mixsingStage++;
+        if(mixser.isMotorStuck(-1))mixsingStage++;
         break;
       case 7: //exstacting
         spinMixser(-150);
@@ -194,7 +190,7 @@ void mix(){
       case 8: 
         if(piston.getPos()< pistonMaxHeight-2)spinMixser(-200);
         else spinMixser(0);
-        if(moveStep(piston,2.5,pistonMinHeight + tank*(amuntUsed+amount)/circleNumLeds) || piston.isMotorStuck(-1,redSensors)){
+        if(moveStep(piston,2.5,pistonMinHeight + tank*(amuntUsed+amount)/circleNumLeds) || piston.isMotorStuck(-1)){
           amuntUsed = amuntUsed+amount;
           mixsingStage++;
         }
@@ -207,7 +203,6 @@ void mix(){
         if(moveStep(mixser,2.5,0) && moveStep(piston,2.5,1) && moveStep(peripheral,2.5,0))mixsingStage=-1;
         break;
     }
-    redSensors = false;
   }
   disableMotors();
 }

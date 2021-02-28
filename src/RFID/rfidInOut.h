@@ -70,11 +70,11 @@ bool writeData(){
   for (int i = 4; i <=END_BLOCK; i++)
   { 
     if (i==4){
-          Serial.print(F("WRITTEN: "));
-          Serial.print(data[i][0]);
-          Serial.print(data[i][1]);
-          Serial.print(data[i][2]);
-          Serial.print(data[i][3]);
+          // Serial.print(F("WRITTEN: "));
+          // Serial.print(data[i][0]);
+          // Serial.print(data[i][1]);
+          // Serial.print(data[i][2]);
+          // Serial.print(data[i][3]);
         if (!writeBytesToBlock( pageAddr1 + (i -4), data[i])){
             Serial.println("Error writing");
             return false;

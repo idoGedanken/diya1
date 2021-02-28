@@ -13,7 +13,6 @@ class StepMotor{
     int _einFeedback;
     unsigned long _lestStep;
     unsigned long _motorStuck;
-    unsigned long _motorStuckLastCall;
     bool _dir = true;
     bool _dirFeedback = false;
     bool _encoderFeedback;
@@ -28,7 +27,6 @@ class StepMotor{
     _motorPin = motorPin;
     _enPin = enPin;
     _lestStep = micros();
-    _motorStuckLastCall = 0;
     _motorStuck = 0;
     }
     void setOptic(bool opticVal){_motorOptic = opticVal;}
@@ -58,11 +56,17 @@ class StepMotor{
         if (TargetPos < _pos)setDir(false);
         else if (TargetPos > _pos)setDir(true);      
     }
-    bool isMotorStuck(unsigned long time, bool ignore){
-        return _motorStuck > 70;
+    bool isMotorStuck(int steps=70){
+        if (steps == -1)steps = 70;
+        //Serial.println(_motorStuck);
+        return _motorStuck > steps;
     }
-    bool Move(double speeed, double TargetPos) {
-    if(abs(TargetPos - _pos) <= 0.0234){
+    bool Move(double speeed, double TargetPos) { 
+    if(abs(TargetPos - _pos) <= 0.0234 ){
+        return true;
+    }
+    if(isMotorStuck(800)){
+        Serial.println("encoder eror");
         return true;
     }
     if ((micros() - _lestStep) > max((int)(625 / speeed), 150) && TargetPos != _pos) {

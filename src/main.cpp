@@ -1,6 +1,6 @@
 #include "Arduino.h"
-#include "buttons.h"
-// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom -> RFread -> motors -> buttons
+#include "tests.h"
+// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom -> RFread -> motors -> buttons -> tests
 
 void sendToEsp8266() {
   if (isInWifiData('A'))amount += 1;
@@ -101,6 +101,7 @@ void setup() {
   readSensors();
   setStepMotorDirs();
   homing();
+  stepMotorTest(peripheral);
   disableMotors();
   Serial.println("HOMING COMPLITED");
   //TestCupsol();
