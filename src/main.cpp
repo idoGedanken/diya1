@@ -105,6 +105,7 @@ void setup() {
   Serial.println("SETUP COMPLITED");
   readSensors();
   setStepMotorDirs();
+  //TestCupsol();
   homing();
   disableMotors();
   Serial.println("HOMING COMPLITED");

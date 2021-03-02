@@ -21,17 +21,18 @@ void moveTray(){
   else if(!closeTrayDirection && !trayOpen){
     analogWrite(TRAY_DIR_OUT,traySpeed);
     analogWrite(TRAY_DIR_IN,0); 
-    if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+    if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()){
       writeDataStatus = writeData() || writeDataStatus;
       }
     }
 // }
 else{
-  if(!writeDataStatus){}//writeToFlash(createWriteBuffer(),getParam("UID"));
-  writeDataStatus = false;
-  traySpeed = 0;
-  analogWrite(TRAY_DIR_OUT,0);
-  analogWrite(TRAY_DIR_IN,0);
+  if(!writeDataStatus){writeToFlash(createWriteBuffer(),getParam("UID"));
+    Serial.println(readFlash());}
+    writeDataStatus = true;
+    traySpeed = 0;
+    analogWrite(TRAY_DIR_OUT,0);
+    analogWrite(TRAY_DIR_IN,0);
   }
 }
 void spinMixser(int sped){
@@ -71,7 +72,7 @@ void setStepMotorDirs() {
     piston.setDirFeedback(piston.getDir());
   }
 }
-bool moveStep(StepMotor &motor, double TargetPos,double speeed=3.6 ){
+bool moveStep(StepMotor &motor, double TargetPos,double speeed=3.4 ){
   motor.readEncoder();
   motor.calcMotorDir(TargetPos);
   setStepMotorDirs();
@@ -136,7 +137,7 @@ void mix(){
         break;
       case 0://tring to interface
         //spinMixser(200);
-        moveStep(peripheral,surface);
+        //moveStep(peripheral,surface);
         if(moveStep(mixser,mixserInterfaceHeight))mixsingStage++;
         break;
       case 1://tring to interface
@@ -144,9 +145,14 @@ void mix(){
         delay(300);
         mixsingStage++;
         break;
-      case 2://chaking if interface hapend 
+      case 2://tring to interface
+        spinMixser(0);
+        moveStep(mixser,15);
+        if(moveStep(piston,10) && moveStep(mixser,10) ) mixsingStage++;
+        break;        
+      case 15://chaking if interface hapend 
         spinMixser(150);
-        if(moveStep(mixser,mixsingMinHight - 2)){
+        if(moveStep(mixser,mixsingMinHight - 2)  ){
           if(capsuleInterface2 || capsuleInterface1){
             if (mixedCapsule) mixsingStage += 2; 
             else mixsingStage++;
@@ -211,11 +217,16 @@ void mix(){
   disableMotors();
 }
 void TestCupsol(){
+  for(int i = 0 ; i < 15000;i++){
+    digitalWrite(27, HIGH);
+    digitalWrite(27, LOW);
+    delay(1);
+  }
   while(1){
-    moveStep(mixser, 50000);
-    EVERY_N_MILLISECONDS( 100 ) {
-      Serial.println(mixser.getPos());
-      readSensors();
-    }
+    // moveStep(mixser, 50000);
+    // EVERY_N_MILLISECONDS( 100 ) {
+    //   Serial.println(mixser.getPos());
+    //   readSensors();
+    // }
   }
 }
