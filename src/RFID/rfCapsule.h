@@ -9,7 +9,7 @@
   @field key: Data type
   @field block: Number of block the byte sits
   @field offset: How many blocks we skip
-*/
+**/
 struct DataTypeRfid
 {
   String key;
@@ -49,7 +49,7 @@ class chipMapper
       // Map between type to block and offset
       insertKey("CapType", &block, &offset,1);
       insertKey("currentAmount", &block, &offset,1);
-      insertKey("hight", &block, &offset,1);
+      insertKey("height", &block, &offset,1);
       insertKey("mixed", &block, &offset,1);
       //handles all the UID bytes
       handleUidBytes(&block, &offset);
@@ -104,7 +104,10 @@ Inserts key with location to map
    DataTypeRfid * findInMap(String key){
       int counterIndex = this->indexCounter - 1;
       for (int i=0;i <= counterIndex;i++){
-        //Serial.println(mapLocation.arrayOfDataType[i].key);
+        Serial.println("key:");
+        Serial.println(key);
+        Serial.println("checking:");
+        Serial.println(mapLocation.arrayOfDataType[i].key);
         if (key == this->mapLocation.arrayOfDataType[i].key){
             return &((this->mapLocation).arrayOfDataType[i]);
         }

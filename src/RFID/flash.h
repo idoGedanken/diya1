@@ -67,11 +67,14 @@ void insertUID(String UIDDATA,String UID){
   String flashBuffer = readFlash();
   // Updates the indexes
   if(findUID(UID, flashBuffer, &startIndex, &endIndex)){
-    if (flashBuffer.indexOf(UIDDATA)){
-      //Already exists
+    if (flashBuffer.indexOf(UIDDATA)>0){
+      Serial.println(UIDDATA);
+      Serial.println(flashBuffer);
+      Serial.println("sameDataInFlash!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11");
       return;
     }else{
       //deletes the prev
+       Serial.println("updateUID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
       DeleteUIDFromFile( flashBuffer, UID);
     }
   }
