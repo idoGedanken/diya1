@@ -10,7 +10,6 @@ class StepMotor{
     double _posFeedback;
     int _motorPin;
     int _enPin;
-    int _einFeedback;
     unsigned long _lestStep;
     unsigned long _motorStuck;
     bool _dir = true;
@@ -52,24 +51,22 @@ class StepMotor{
         }
         _encoderFeedback = encoderRead;
         }
-    void culcMotorDir(double TargetPos){
+    void calcMotorDir(double TargetPos){
         if (TargetPos < _pos)setDir(false);
         else if (TargetPos > _pos)setDir(true);      
     }
     bool isMotorStuck(int steps=70){
-        if (steps == -1)steps = 70;
-        //Serial.println(_motorStuck);
         return _motorStuck > steps;
     }
-    bool Move(double speeed, double TargetPos) { 
+    bool move(double TargetPos, double speeed = 3.6) { 
     if(abs(TargetPos - _pos) <= 0.0234 ){
         return true;
     }
     if(isMotorStuck(800)){
-        Serial.println("encoder eror");
+        Serial.println("stuck encoder eror");
         return true;
     }
-    if ((micros() - _lestStep) > max((int)(625 / speeed), 150) && TargetPos != _pos) {
+    if ((micros() - _lestStep) > max((int)(625 / max(0.0 ,speeed)), 175)) {
         digitalWrite(_motorPin, HIGH);
         digitalWrite(_motorPin, LOW);
         _motorStuck ++;

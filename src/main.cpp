@@ -1,24 +1,22 @@
 #include "Arduino.h"
 #include "tests.h"
-// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom -> RFread -> motors -> buttons -> tests
-
+// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom  -> motors -> buttons -> tests
 void sendToEsp8266() {
   if (isInWifiData('A'))amount += 1;
   if (isInWifiData('S')) amount -= 1;
-  amount = min(maxAmount,max(0,amount));
+  amount = min(maxAmount,amount);
+  amount = max(0,amount);
   wifiData.fill = amount;
   wifiData.mixsingTime = 95000 + 10000 ;//+ amount*5000;
   wifiData.BTcolor = BTcolor;
-  wifiData.color = RFIDColor[findNumInArray(RFIntID,RFIntIDArray)];
+  wifiData.color = RFIDColor[0];//findNumInArray(RFIntID,RFIntIDArray)
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &wifiData, sizeof(wifiData));
   if (result == ESP_OK)clenWifiData();
-  else Serial.println("Error sending the data");
+  else Serial.println("Error sending the dwifi ata");
 }
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   wifisStatus = status == ESP_NOW_SEND_SUCCESS ? "S" : "F";
 }
-
-
 void stateMachine() {
   switch (stage) {
     case 'm': //mixsing
@@ -28,7 +26,7 @@ void stateMachine() {
       }
       break;
     case 'r'://Redy to mix
-      if (isInWifiData('P') && maxAmount != 0) {
+      if (isInWifiData('P') && maxAmount != 0 && amount != 0) {
         AddToEndOfWifiData('m');
         stage = 'm';
       }
@@ -37,9 +35,9 @@ void stateMachine() {
         stage = 'i';
       }
       break;
-    case'i'://
-      if (!trayClosed)trayClosedTime = millis();
-      if((millis() - trayClosedTime) > 15000) capsuleDetected = true;
+    case 'i'://
+      // if (!trayClosed)trayClosedTime = millis();
+      // if((millis() - trayClosedTime) > 15000) capsuleDetected = true; // RFID overide 
       if (capsuleDetected && trayClosed && !isInWifiData('i') ) {
         AddToEndOfWifiData('r');
         stage = 'r';
@@ -95,22 +93,28 @@ void setup() {
     Serial.println("Error: mounting SPIFFS");
     return;
   }        
-   //******************* motors SETUP *************************
-
+   //******************* Testmode *************************
+  if (Serial.available()) {
+  delay(2);
+  if ((char)Serial.read() == 'Q'){
+    Serial.print('Q');
+    test();}
+  }
+  //******************* motors SETUP *************************
+  SetCapsulParams();
   Serial.println("SETUP COMPLITED");
   readSensors();
   setStepMotorDirs();
   homing();
-  stepMotorTest(peripheral);
   disableMotors();
   Serial.println("HOMING COMPLITED");
-  //TestCupsol();
+
 }
 void loop() {
+  // test();
   switch (stage) {
-    case 'm': //mixsing
+    case 'm': //mixing
       if (stageFeedback != stage) {
-        mixsingT = millis();
         AddToEndOfWifiData('m');
         String ButtonsArray[] = {"Battery", "BT"};
         enabledButtonsArraySize = 2;
@@ -124,7 +128,7 @@ void loop() {
         cap->setParam("mixed",(unsigned int)mixedCapsule);
       }
       break;
-    case 'r'://Redy to mix
+    case 'r'://Ready to mix
       if (stageFeedback != stage) {
         finishMixing = false;
         AddToEndOfWifiData('r');
@@ -135,8 +139,7 @@ void loop() {
       }
       moveTray();
       break;
-    case 'i':
-
+    case 'i'://init
       if (stageFeedback != stage) {
         AddToEndOfWifiData('i');
         //mAddToEndOfWifiData('b');
@@ -154,15 +157,20 @@ void loop() {
   amountFeedback = amount;
   strcpy(wifiDataFeedback.a, wifiData.a);
   if (Serial.available()) {
-    char tamp = Serial.read();
-    if (tamp == 'b')BTConected = false;
-    if (tamp == 'B')BTConected = true;
-    if (tamp == 'c')capsuleDetected = false;
-    if (tamp == 'C')capsuleDetected = true;
-    if (tamp == 't')trayClosed = false;
-    if (tamp == 'T')trayClosed = true;
-    if (tamp == 'M')finishMixing = true;
-    if (tamp == 'm')finishMixing = false;
+    delay(2);
+    char temp = (char)Serial.read();
+    Serial.println(temp);
+    if (temp == 'Q'){
+      Serial.print('Q');
+      test();}
+    if (temp == 'b')BTConected = false;
+    if (temp == 'B')BTConected = true;
+    if (temp == 'c')capsuleDetected = false;
+    if (temp == 'C')capsuleDetected = true;
+    if (temp == 't')trayClosed = false;
+    if (temp == 'T')trayClosed = true;
+    if (temp == 'M')finishMixing = true;
+    if (temp == 'm')finishMixing = false;
   } 
   stateMachine();
   EVERY_N_MILLISECONDS( 50 ) {

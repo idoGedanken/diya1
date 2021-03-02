@@ -18,11 +18,12 @@ String hxToButtonName(int hx, String unableArry[]) {
     if ((hx >> 6) % 2 && temp == 'T')result += "T";
     if ((hx >> 3) % 2 && temp == 'P')result += "P";
     if ((hx >> 5) % 2 && temp == 'A')result +=  "A";
-    //if ((hx >> 0) % 2 && temp == 'B')result +=  "B";
-    if ((hx >> 1) % 2 && temp == 'p')result +=  "p";
-    if ((hx >> 2) % 2 && temp == 'b')result +=  "b";
+    if ((hx >> 0) % 2 && temp == 'B')result +=  "B";
+    //if ((hx >> 1) % 2 && temp == 'p')result +=  "p";
+    //if ((hx >> 2) % 2 && temp == 'b')result +=  "b";
     if ((hx >> 4) % 2 && temp == 'S')result +=  "S";
   }
+  //Serial.println(result);
   return result;
 }
 String buttonsPreesed(String unableArry[]){
@@ -33,7 +34,7 @@ String buttonsPreesed(String unableArry[]){
   if(isInString(buttons ,'T')&& (trayClosed ||trayOpen)){
     if( millis() - TPressedTimer >= buttonPreesedTime){
       TPressedTimer = millis();
-      trayDirection = trayDirection^true;
+      closeTrayDirection = closeTrayDirection^true;
       trayClosed = false;
       result += "T";
     }

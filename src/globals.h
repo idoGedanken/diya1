@@ -4,7 +4,6 @@
 #include <Wire.h>
 #include <BluetoothSerial.h>
 #include <analogWrite.h>
-#include <EEPROM.h> //esp
 #include <SPI.h>
 #include <MFRC522.h>
 #include <INA226.h>
@@ -20,6 +19,7 @@ double  peripheralCellsHeight = 16.5 ;
 double  mixserInterfaceHeight = 22.7;
 double  mixsingMaxHight = 20 ;
 double  mixsingMinHight = 8 ;
+double  mixserPenetrationHight = 29.06 ;
 bool mixedCapsule = false;
 double pistonMinHeight = 14;
 int amuntUsed = 0;
@@ -28,20 +28,20 @@ double mixserMaxHeight = pistonMaxHeight + 4;
 double circleNumLeds = 8; 
 int amount = 1;
 int amountFeedback = 1;
-int maxAmount = ((pistonMaxHeight - amuntUsed)/(pistonMaxHeight - pistonMinHeight))*circleNumLeds ;
+int maxAmount = 8 ;
 //MOTOR PINS
 #define TRAY_DIR_IN 17
 #define TRAY_DIR_OUT 23
 INA226 TrayIna;
 #define mixserDCPin1 18
 #define mixserDCPin2 19
-int buttonsAddress = 0x19; 
-int sensorAddress = 0x18;
+#define buttonsAddress  0x19 
+#define sensorAddress  0x18
 bool capsuleDetected = true;
 bool finishMixing = false;
 bool buttonPreest;
 String enabledButtonsArray[7];
-int enabledButtonsArraySize = 0;
+unsigned int enabledButtonsArraySize = 0;
 char stage = 'i';
 char stageFeedback = 'f';
 //******************* RFID CONFIG *************************
@@ -64,7 +64,6 @@ char stageFeedback = 'f';
  String flashParams[]={"CapType","currentAmount","hight","mixed"};
 bool writeDataStatus = false;
 int RFIntID = 2201;
-int RFIntIDArray[] ={2201,2185,2187};
 CRGB RFIDColor[] = {CRGB(0, 0, 255),CRGB(255, 102, 255),CRGB(204, 255, 51)};
 //******************TIMING************************************
 unsigned int timeMixsing = 0;
@@ -89,7 +88,7 @@ bool trayClosed  = true;
 bool trayOpen;
 bool capsuleInterface1;
 bool capsuleInterface2;
-bool trayDirection = false;
+bool closeTrayDirection = false;
 int traySpeed = 50;
 //******************BT************************************
 bool BTConected = false;

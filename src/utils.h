@@ -31,6 +31,7 @@ bool AddToEndOfWifiData(char a) {
 void AddStringToEndOfWifiData(String s) {
   for (int i = 0; i < s.length(); i++)AddToEndOfWifiData(s[i]);
 }
+
 void readSensors() {
   int Rghx18 = readWireData(sensorAddress);
   trayClosed =((Rghx18 >> 3) % 2);
@@ -40,7 +41,6 @@ void readSensors() {
   piston.setOptic((Rghx18 >> 1) % 2);
   peripheral.setOptic((Rghx18 >> 2) % 2);
   mixser.setOptic((Rghx18 >> 0) % 2);
-
 }
 void printStatos(){
   // int Rghx18 = readWireData(sensorAddress);
@@ -64,9 +64,9 @@ void SetCapsulParams(){
     mixedCapsule = cap->getParam("mixed") >= 1;
     amuntUsed = cap->getParam("currentAmount");
     maxAmount = circleNumLeds - amuntUsed;
-  switch (cap->getParam("CapType")) {
-  case 0://6 cals small
-    peripheralCellsHeight = 16.5 ;
+  switch (0){//cap->getParam("CapType")) {
+  case 0://6 cell small
+    peripheralCellsHeight = 15.7 ;
     mixserInterfaceHeight = 22.5;
     mixsingMaxHight = 20 ;
     mixsingMinHight = 8 ;
@@ -74,8 +74,8 @@ void SetCapsulParams(){
     pistonMaxHeight = 22.2; 
     mixserMaxHeight = pistonMaxHeight + 4; 
     break;
-  case 1://6 cals mid
-    peripheralCellsHeight = 13.5 ;
+  case 1://6 cell mid
+    peripheralCellsHeight = 18;
     mixserInterfaceHeight = 22.5;
     mixsingMaxHight = 20 ;
     mixsingMinHight = 8 ;
@@ -83,7 +83,7 @@ void SetCapsulParams(){
     pistonMaxHeight = 25.3; 
     mixserMaxHeight = pistonMaxHeight + 4;  
   break;
-  case 2://6 cals mid
+  case 2://9 cals 
     peripheralCellsHeight = 13.5 ;
     mixserInterfaceHeight = 22.5;
     mixsingMaxHight = 20 ;

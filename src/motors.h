@@ -2,27 +2,28 @@
 void moveTray(){
   traySpeed = min(max(traySpeed + 1,180),255);
   if(abs(TrayIna.readShuntCurrent()) > max(0.18,traySpeed/1000.0) && !trayClosed){EVERY_N_MILLISECONDS(200){
-    trayDirection = true^trayDirection;
+    closeTrayDirection = true^closeTrayDirection;
     traySpeed = 0;
     }
     }
-  if(trayDirection && !trayClosed ) {
+  if(closeTrayDirection && !trayClosed ) {
     analogWrite(TRAY_DIR_IN,traySpeed);
     analogWrite(TRAY_DIR_OUT,0);
-    if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()){
-        readData();
+    if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial() && readData()){
         SetCapsulParams();
-        Serial.println( cap->getParam("CapType"));
-        Serial.println( cap->getParam("currentAmount"));
-        Serial.println( cap->getParam("mixed"));
+        // Serial.println( cap->getParam("CapType"));
+        // Serial.println( cap->getParam("currentAmount"));
+        // Serial.println( cap->getParam("mixed"));
         
     }
     writeDataStatus = false;
   } 
-  else if(!trayDirection && !trayOpen){
+  else if(!closeTrayDirection && !trayOpen){
     analogWrite(TRAY_DIR_OUT,traySpeed);
     analogWrite(TRAY_DIR_IN,0); 
-    if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) writeDataStatus = writeDataStatus||writeData();
+    if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+      writeDataStatus = writeData() || writeDataStatus;
+      }
     }
 // }
 else{
@@ -32,8 +33,6 @@ else{
   analogWrite(TRAY_DIR_OUT,0);
   analogWrite(TRAY_DIR_IN,0);
   }
-
-
 }
 void spinMixser(int sped){
   if(sped > 0){
@@ -72,32 +71,38 @@ void setStepMotorDirs() {
     piston.setDirFeedback(piston.getDir());
   }
 }
-bool moveStep(StepMotor &motor,double speeed, double TargetPos ){
+bool moveStep(StepMotor &motor, double TargetPos,double speeed=3.6 ){
   motor.readEncoder();
-  motor.culcMotorDir(TargetPos);
+  motor.calcMotorDir(TargetPos);
   setStepMotorDirs();
-  return motor.Move(speeed, TargetPos);
+  return motor.move(TargetPos, speeed);
 }
 
 void homing() {
   bool pistonStuk = false;
   bool pistonIsHome = false;
+  unsigned long homingTimer = micros();
   while (!mixser.getOptic() || !peripheral.getOptic() || !pistonIsHome) {
     EVERY_N_MILLISECONDS( 50 ) {
     readSensors();
     }
-    if (!peripheral.getOptic()) moveStep(peripheral,2.5, -669);//random high number
+    if(micros() - homingTimer > 20000000){
+      Serial.println("homing doesnt work");
+      spinMixser(0);
+      return;
+    }
+    if (!peripheral.getOptic()) moveStep(peripheral,-669);//random high number
     if(!pistonStuk && !pistonIsHome){
-        moveStep(piston,2.5,-669);//random high number
-        if(piston.isMotorStuck(-1)){
+        moveStep(piston,-669);//random high number
+        if(piston.isMotorStuck()){
           pistonStuk = true;
           piston.setPos(0);
         }
     }
-    if(pistonStuk) if(moveStep(piston,2.5,0.2)) pistonIsHome = true;
+    if(pistonStuk) if(moveStep(piston,0.2)) pistonIsHome = true;
     if (!mixser.getOptic()) {
       spinMixser(-150);
-      moveStep(mixser,2.5, -669);//random high number
+      moveStep(mixser, -669);//random high number
     }
     else spinMixser(0);
   }
@@ -115,14 +120,14 @@ void mix(){
   if(mixedCapsule) mixsingCycles = 1;
   while(mixsingStage < 668){
     EVERY_N_MILLISECONDS( 100 ) {
-    printStatos();
-    // Serial.print(mixser.getPos());
-    // Serial.println("  mixser");
-    // Serial.print(piston.getPos());
-    // Serial.println("  piston");
-    // Serial.print(peripheral.getPos());
-    // Serial.println("  peripheral");
-    readSensors();
+      printStatos();
+      // Serial.print(mixser.getPos());
+      // Serial.println("  mixser");
+      // Serial.print(piston.getPos());
+      // Serial.println("  piston");
+      // Serial.print(peripheral.getPos());
+      // Serial.println("  peripheral");
+      readSensors();
     }
     switch (mixsingStage) {
       case -1://exsit stage
@@ -131,8 +136,8 @@ void mix(){
         break;
       case 0://tring to interface
         //spinMixser(200);
-        moveStep(peripheral,2.5,surface);
-        if(moveStep(mixser,2.5,mixserInterfaceHeight))mixsingStage++;
+        moveStep(peripheral,surface);
+        if(moveStep(mixser,mixserInterfaceHeight))mixsingStage++;
         break;
       case 1://tring to interface
         spinMixser(200);
@@ -141,7 +146,7 @@ void mix(){
         break;
       case 2://chaking if interface hapend 
         spinMixser(150);
-        if(moveStep(mixser,2.5,mixsingMinHight - 2)){
+        if(moveStep(mixser,mixsingMinHight - 2)){
           if(capsuleInterface2 || capsuleInterface1){
             if (mixedCapsule) mixsingStage += 2; 
             else mixsingStage++;
@@ -154,21 +159,21 @@ void mix(){
           }
         }
         break;
-      case 3://Pushes the material 
-        //moveStep(mixser,2.5,1);
+      case 3://peripheral pushes the material 
+        //moveStep(mixser,1);
         spinMixser(0);        
-        if(peripheral.isMotorStuck(-1)||moveStep(peripheral,2.5,peripheralCellsHeight))mixsingStage++;
+        if(moveStep(peripheral,peripheralCellsHeight))mixsingStage++;
         break;
       case 4://mixsing
         spinMixser(255);
         if(curentMixsingCycles == 2*mixsingCycles)mixsingStage++;
         if(curentMixsingCycles%2 == 0){
-          if(moveStep(mixser,2.5,mixsingMaxHight)){
+          if(moveStep(mixser,mixsingMaxHight)){
             curentMixsingCycles++;
           }
         }
         else{
-          if(moveStep(mixser,2.5,mixsingMinHight)){
+          if(moveStep(mixser,mixsingMinHight)){
           curentMixsingCycles++;
           }
         }
@@ -176,57 +181,41 @@ void mix(){
       case 5://penetration
         mixedCapsule = true;
         spinMixser(255);
-        if(moveStep(mixser,2.5,mixsingMaxHight))mixsingStage++;
+        if(moveStep(mixser,mixsingMaxHight))mixsingStage++;
         break;
       case 6://penetration
         spinMixser(0);
-        moveStep(mixser,2.5,669);//random high number
-        if(mixser.isMotorStuck(-1))mixsingStage++;
+        if(moveStep(mixser,mixserPenetrationHight) || mixser.isMotorStuck()) mixsingStage++;
         break;
       case 7: //exstacting
         spinMixser(-150);
-        if(moveStep(mixser,2.5,mixsingMaxHight + 2))mixsingStage++;
+        if(moveStep(mixser,mixsingMaxHight + 2))mixsingStage++;
         break;
       case 8: 
-        if(piston.getPos()< pistonMaxHeight-2)spinMixser(-200);
+        if(piston.getPos()< pistonMaxHeight-3)spinMixser(-200);
         else spinMixser(0);
-        if(moveStep(piston,2.5,pistonMinHeight + tank*(amuntUsed+amount)/circleNumLeds) || piston.isMotorStuck(-1)){
+        if(moveStep(piston,pistonMinHeight + tank*(amuntUsed+amount)/circleNumLeds) || piston.isMotorStuck()){
           amuntUsed = amuntUsed+amount;
           mixsingStage++;
         }
         break;
       case 9: //exstacting
         spinMixser(0);
-        moveStep(mixser,2.5,0);
-        moveStep(piston,2.5,1);
-        moveStep(peripheral,2.5,0);
-        if(moveStep(mixser,2.5,0) && moveStep(piston,2.5,1) && moveStep(peripheral,2.5,0))mixsingStage=-1;
+        moveStep(mixser,0);
+        moveStep(piston,1);
+        moveStep(peripheral,0);
+        if(moveStep(mixser,0) && moveStep(piston,1) && moveStep(peripheral,0))mixsingStage=-1;
         break;
     }
   }
   disableMotors();
 }
 void TestCupsol(){
-  homing();
-  while(!moveStep(peripheral, 2.5,50)){
+  while(1){
+    moveStep(mixser, 50000);
     EVERY_N_MILLISECONDS( 100 ) {
-    Serial.println(peripheral.getPos());
-    readSensors();
-  }
-  }
-  spinMixser(255);
-  delay(500);
-  spinMixser(0);
-
-  while(!moveStep(piston, 2.5,6)){
-    EVERY_N_MILLISECONDS( 100 ) {
-    Serial.println(piston.getPos());
-    // Serial.println("mixser.getPos()");
-    // Serial.print(piston.getPos());
-    // Serial.println("piston.getPos()");
-    // Serial.println(peripheral.getPos());
-    // Serial.println("peripheral.getPos()");
-    readSensors();
-  }
+      Serial.println(mixser.getPos());
+      readSensors();
+    }
   }
 }

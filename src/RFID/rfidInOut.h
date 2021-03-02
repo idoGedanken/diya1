@@ -16,8 +16,8 @@ byte* readblock(uint8_t pageAddr) {
   }
   return value;
 }
-void readData() {
-  Serial.println("Start reading:");
+bool readData() {
+  //Serial.println("Start reading:");
   uint8_t pageAddr = 0;
   for (int i = 0; i <= END_BLOCK; i++)
   { 
@@ -36,11 +36,12 @@ void readData() {
         // }
       }
     } else {
-      Serial.println(F( "failed reading data: "));
-      return;
+      //Serial.println(F( "failed reading data: "));
+      return false;
     }
   }
   Serial.println("Read all the data succesfully");
+  return true;
 }
 bool writeBytesToBlock(uint8_t pageAddr, byte buff[]) {
     // Serial.print(F("WRITTEN: "));
