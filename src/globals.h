@@ -7,8 +7,8 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <INA226.h>
-#include <StepMotor.cpp>
 #include "SPIFFS.h"
+#include "StepMotor.h"
 #include "wireCom.h"
 
 StepMotor mixser(25,33);
@@ -116,7 +116,7 @@ typedef struct struct_message {
 struct_message wifiData;
 struct_message wifiDataFeedback;
 // REPLACE WITH YOUR RECEIVER MAC Address  84:F3:EB:DC:E4:26
-uint8_t broadcastAddress[] = { 0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26};
+uint8_t broadcastAddress[] = {0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26};
 // { 0x84, 0xF3, 0xEB, 0xDC, 0xE4, 0x26} - black
 //{0x84, 0xCC, 0xA8, 0x9F, 0xEE, 0x62} - white
 

@@ -1,6 +1,8 @@
 #include "Arduino.h"
 #include "tests.h"
-// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom  -> motors -> buttons -> tests
+// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom  -> motors -> buttons -> tests -> main
+
+
 
 void sendToEsp8266() {
   if (isInWifiData('A'))amount += 1;
