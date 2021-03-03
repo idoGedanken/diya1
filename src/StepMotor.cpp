@@ -62,8 +62,8 @@ class StepMotor{
     if(abs(TargetPos - _pos) <= 0.0234 ){
         return true;
     }
-    if(isMotorStuck(1000)){
-        Serial.println("stuck encoder eror");
+    if(isMotorStuck(1000) && false){
+        //Serial.println("stuck encoder eror");
         return true;
     }
     if ((micros() - _lestStep) > max((int)(625 / max(0.0 ,speeed)), 175)) {

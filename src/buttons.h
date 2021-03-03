@@ -36,6 +36,8 @@ String buttonsPreesed(String unableArry[]){
       TPressedTimer = millis();
       closeTrayDirection = closeTrayDirection^true;
       trayClosed = false;
+      writeDataStatus = false;
+      traySpeed = 0;
       result += "T";
     }
   }

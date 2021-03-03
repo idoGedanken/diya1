@@ -1,9 +1,12 @@
 #include "RFread.h"
+
+
 void moveTray(){
-  traySpeed = min(max(traySpeed + 1,180),255);
+  traySpeed = min(max(traySpeed + 5,200),255);
   if(abs(TrayIna.readShuntCurrent()) > max(0.18,traySpeed/1000.0) && !trayClosed){EVERY_N_MILLISECONDS(200){
     closeTrayDirection = true^closeTrayDirection;
     traySpeed = 0;
+    writeDataStatus = false;
     }
     }
   if(closeTrayDirection && !trayClosed ) {
@@ -13,10 +16,9 @@ void moveTray(){
         SetCapsulParams();
         // Serial.println( cap->getParam("CapType"));
         // Serial.println( cap->getParam("currentAmount"));
-        // Serial.println( cap->getParam("mixed"));
-        
+        // Serial.println( cap->getParam("mixed"));   
     }
-    writeDataStatus = false;
+    writeDataStatus = true;
   } 
   else if(!closeTrayDirection && !trayOpen){
     analogWrite(TRAY_DIR_OUT,traySpeed);
@@ -27,12 +29,12 @@ void moveTray(){
     }
 // }
 else{
-  if(!writeDataStatus){writeToFlash(createWriteBuffer(),getParam("UID"));
-    Serial.println(readFlash());}
-    writeDataStatus = true;
-    traySpeed = 0;
-    analogWrite(TRAY_DIR_OUT,0);
-    analogWrite(TRAY_DIR_IN,0);
+  if(!writeDataStatus){
+    writeToFlash(createWriteBuffer(),getParam("UID"));
+  }
+  writeDataStatus = true;
+  analogWrite(TRAY_DIR_OUT,0);
+  analogWrite(TRAY_DIR_IN,0);
   }
 }
 void spinMixser(int sped){
@@ -108,9 +110,114 @@ void homing() {
     else spinMixser(0);
   }
 }
-
-
+#define EXSIT -1
+#define INTERFACE 0 
+#define INTERFACE_ASSURANCE 2 
+#define PUSH_EXTERNAL_MATERIALS 3 
+#define MIXSING 4 
+#define PENETRATION 5 
+#define DELIVER_THE_CREAM 8
+#define PENETRATION 5 
 void mix(){
+  homing();
+  double tank = pistonMaxHeight - pistonMinHeight;
+  double surface = 9;
+  int mixsingStage = 0;
+  int interfaceAtempts = 0;
+  int mixsingCycles = 2;
+  int curentMixsingCycles = 0;
+  if(mixedCapsule) mixsingCycles = 1;
+  while(mixsingStage < 668){
+    EVERY_N_MILLISECONDS( 100 ) {
+      printStatos();
+      // Serial.print(mixser.getPos());
+      // Serial.println("  mixser");
+      // Serial.print(piston.getPos());
+      // Serial.println("  piston");
+      // Serial.print(peripheral.getPos());
+      // Serial.println("  peripheral");
+      readSensors();
+    }
+    switch (mixsingStage) {
+      case EXSIT:
+        homing();
+        mixsingStage = 669;// high random number to get out of the while loop
+        break;
+      case INTERFACE://tring to interface
+        moveStep(peripheral,surface);
+        if(moveStep(mixser,mixserInterfaceHeight))mixsingStage++;
+        break;
+      case INTERFACE + 1://tring to interface
+        spinMixser(200);
+        delay(300);
+        mixsingStage = INTERFACE;
+        break;       
+      case INTERFACE_ASSURANCE://chaking if interface hapend 
+        spinMixser(150);
+        if(moveStep(mixser,mixsingMinHight - 2)  ){
+          if(capsuleInterface2 || capsuleInterface1){
+            if (mixedCapsule) mixsingStage += 2; 
+            else mixsingStage++;
+          }
+          else{
+            spinMixser(0);
+            interfaceAtempts ++;
+            if(interfaceAtempts >= 2) mixsingStage = EXSIT;//pas the max atemps so go homing
+            else mixsingStage = INTERFACE;
+          }
+        }
+        break;
+      case PUSH_EXTERNAL_MATERIALS://peripheral pushes the material 
+        spinMixser(0);        
+        if(moveStep(peripheral,peripheralCellsHeight))mixsingStage = MIXSING;
+        break;
+      case MIXSING://mixsing
+        spinMixser(255);
+        if(curentMixsingCycles == 2*mixsingCycles)mixsingStage = PENETRATION;
+        if(curentMixsingCycles%2 == 0){
+          if(moveStep(mixser,mixsingMaxHight)){
+            curentMixsingCycles++;
+          }
+        }
+        else{
+          if(moveStep(mixser,mixsingMinHight)){
+          curentMixsingCycles++;
+          }
+        }
+        break;
+      case PENETRATION:
+        mixedCapsule = true;
+        spinMixser(255);
+        if(moveStep(mixser,mixsingMaxHight))mixsingStage = PENETRATION + 1;
+        break;
+      case PENETRATION + 1://penetration
+        spinMixser(0);
+        if(moveStep(mixser,mixserPenetrationHight) || mixser.isMotorStuck()) mixsingStage = PENETRATION + 2;
+        break;
+      case PENETRATION + 2: //exstacting
+        spinMixser(-150);
+        if(moveStep(mixser,mixsingMaxHight + 2))mixsingStage = DELIVER_THE_CREAM;
+        break;
+      case DELIVER_THE_CREAM: 
+        if(piston.getPos()< pistonMaxHeight-3)spinMixser(-200);
+        else spinMixser(0);
+        if(moveStep(piston,pistonMinHeight + tank*(amuntUsed+amount)/circleNumLeds) || piston.isMotorStuck()){
+          amuntUsed = amuntUsed+amount;
+          mixsingStage++;
+        }
+        break;
+      case 9: 
+        spinMixser(0);
+        moveStep(mixser,1);
+        moveStep(piston,1);
+        moveStep(peripheral,1);
+        if(moveStep(mixser,0) && moveStep(piston,1) && moveStep(peripheral,0))mixsingStage=EXSIT;
+        break;
+    }
+  }
+  disableMotors();
+}
+void mixR(){
   homing();
   double tank = pistonMaxHeight - pistonMinHeight;
   double surface = 9;
@@ -138,6 +245,7 @@ void mix(){
       case 0://tring to interface
         //spinMixser(200);
         //moveStep(peripheral,surface);
+        moveStep(piston,5);
         if(moveStep(mixser,mixserInterfaceHeight))mixsingStage++;
         break;
       case 1://tring to interface
@@ -146,58 +254,38 @@ void mix(){
         mixsingStage++;
         break;
       case 2://tring to interface
-        spinMixser(0);
-        moveStep(mixser,15);
-        if(moveStep(piston,10) && moveStep(mixser,10) ) mixsingStage++;
-        break;        
-      case 15://chaking if interface hapend 
         spinMixser(150);
-        if(moveStep(mixser,mixsingMinHight - 2)  ){
-          if(capsuleInterface2 || capsuleInterface1){
-            if (mixedCapsule) mixsingStage += 2; 
-            else mixsingStage++;
-          }
-          else{
-            spinMixser(0);
-            interfaceAtempts ++;
-            if(interfaceAtempts >= 2) mixsingStage = -1;//pas the max atemps so go homing
-            else mixsingStage -= 2;
-          }
-        }
-        break;
-      case 3://peripheral pushes the material 
-        //moveStep(mixser,1);
-        spinMixser(0);        
-        if(moveStep(peripheral,peripheralCellsHeight))mixsingStage++;
-        break;
-      case 4://mixsing
+        moveStep(mixser,15);
+        if(moveStep(piston,11) && moveStep(mixser,15) ) mixsingStage++;
+        break;        
+      case 3://mixsing
         spinMixser(255);
         if(curentMixsingCycles == 2*mixsingCycles)mixsingStage++;
         if(curentMixsingCycles%2 == 0){
-          if(moveStep(mixser,mixsingMaxHight)){
+          if(moveStep(mixser,25)){
             curentMixsingCycles++;
           }
         }
         else{
-          if(moveStep(mixser,mixsingMinHight)){
+          if(moveStep(mixser,17)){
           curentMixsingCycles++;
           }
         }
         break;
-      case 5://penetration
+      case 4://penetration
         mixedCapsule = true;
         spinMixser(255);
         if(moveStep(mixser,mixsingMaxHight))mixsingStage++;
         break;
-      case 6://penetration
+      case 5://penetration
         spinMixser(0);
         if(moveStep(mixser,mixserPenetrationHight) || mixser.isMotorStuck()) mixsingStage++;
         break;
-      case 7: //exstacting
+      case 6: //exstacting
         spinMixser(-150);
         if(moveStep(mixser,mixsingMaxHight + 2))mixsingStage++;
         break;
-      case 8: 
+      case 7: 
         if(piston.getPos()< pistonMaxHeight-3)spinMixser(-200);
         else spinMixser(0);
         if(moveStep(piston,pistonMinHeight + tank*(amuntUsed+amount)/circleNumLeds) || piston.isMotorStuck()){
@@ -205,7 +293,7 @@ void mix(){
           mixsingStage++;
         }
         break;
-      case 9: //exstacting
+      case 8: //exstacting
         spinMixser(0);
         moveStep(mixser,0);
         moveStep(piston,1);

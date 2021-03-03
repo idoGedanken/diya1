@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "tests.h"
 // wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom  -> motors -> buttons -> tests
+
 void sendToEsp8266() {
   if (isInWifiData('A'))amount += 1;
   if (isInWifiData('S')) amount -= 1;
@@ -12,7 +13,7 @@ void sendToEsp8266() {
   wifiData.color = RFIDColor[0];//findNumInArray(RFIntID,RFIntIDArray)
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &wifiData, sizeof(wifiData));
   if (result == ESP_OK)clenWifiData();
-  else Serial.println("Error sending the dwifi ata");
+  else Serial.println("Error sending wifi data");
 }
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   wifisStatus = status == ESP_NOW_SEND_SUCCESS ? "S" : "F";
