@@ -61,40 +61,50 @@ void printStatos(){
   // Serial.println("---------------------------------------");
 }
 void SetCapsulParams(){
-    mixedCapsule = cap->getParam("mixed") >= 1;
+    mixedCapsule = cap->getParam("mixed") == 1;
     amuntUsed = cap->getParam("currentAmount");
     maxAmount = circleNumLeds - amuntUsed;
-  switch (0){//cap->getParam("CapType")) {
-  case 0://6 cell small
-    peripheralCellsHeight = 15.7 ;
-    mixserInterfaceHeight = 22.5;
-    mixsingMaxHight = 20 ;
-    mixsingMinHight = 8 ;
-    pistonMinHeight = 14;
-    pistonMaxHeight = 22.2; 
-    mixserMaxHeight = pistonMaxHeight + 4; 
+  switch (cap->getParam("CapType")) {
+    case 0://6 cell small
+      peripheralCellsHeight = 15.7 ;
+      mixsingMaxHight = 20 ;
+      mixsingMinHight = 8 ;
+      pistonMinHeight = 14;
+      pistonMaxHeight = 22.2; 
+      mixserMaxHeight = pistonMaxHeight + 4; 
+      break;
+    case 1://6 cell mid
+      peripheralCellsHeight = 18;
+      mixsingMaxHight = 20 ;
+      mixsingMinHight = 8 ;
+      pistonMinHeight = 14;
+      pistonMaxHeight = 25; 
+      mixserMaxHeight = pistonMaxHeight + 4;  
     break;
-  case 1://6 cell mid
-    peripheralCellsHeight = 18;
-    mixserInterfaceHeight = 22.5;
-    mixsingMaxHight = 20 ;
-    mixsingMinHight = 8 ;
-    pistonMinHeight = 14;
-    pistonMaxHeight = 25.3; 
-    mixserMaxHeight = pistonMaxHeight + 4;  
-  break;
-  case 2://9 cals 
-    peripheralCellsHeight = 13.5 ;
-    mixserInterfaceHeight = 22.5;
-    mixsingMaxHight = 20 ;
-    mixsingMinHight = 8 ;
-    pistonMinHeight = 14;
-    pistonMaxHeight = 25.3; 
-    mixserMaxHeight = pistonMaxHeight + 4;  
-  break;
-  default:
-    // statements
+    case 2://9 cals 
+      peripheralCellsHeight = 13.5 ;
+      mixsingMaxHight = 20 ;
+      mixsingMinHight = 8 ;
+      pistonMinHeight = 14;
+      pistonMaxHeight = 25.3; 
+      mixserMaxHeight = pistonMaxHeight + 4;  
     break;
+    default:
+      // statements
+      break;
+  }
+
 }
+void setCapsul(int capTip){
+  cap->setParam("CapType",(unsigned int)capTip);
+  cap->setParam("currentAmount",(unsigned int)0);
+  cap->setParam("mixed",(unsigned int)false);
+  writeData();
+
+}
+void fillCapsul(){
+  cap->setParam("currentAmount",(unsigned int)0);
+  cap->setParam("mixed",(unsigned int)false);
+  writeData();
 
 }

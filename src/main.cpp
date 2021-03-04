@@ -112,10 +112,12 @@ void setup() {
   homing();
   disableMotors();
   Serial.println("HOMING COMPLITED");
+  
 
 }
 void loop() {
   // test();
+
   switch (stage) {
     case 'm': //mixing
       if (stageFeedback != stage) {
@@ -127,9 +129,9 @@ void loop() {
         mix();
         finishMixing = true;
         maxAmount = circleNumLeds - amuntUsed ;
-        cap->setParam("CapType",(unsigned int)1);
         cap->setParam("currentAmount",(unsigned int)amuntUsed);
-        cap->setParam("mixed",(unsigned int)mixedCapsule);
+        if( mixedCapsule == true)cap->setParam("mixed",(unsigned int)1);
+        else cap->setParam("mixed",(unsigned int)0);
       }
       break;
     case 'r'://Ready to mix
@@ -151,6 +153,7 @@ void loop() {
         String ButtonsArray[] = {"BT", "Battery", "Tray"};
         copyEnableArry(ButtonsArray);
       }
+      //setCapsul(1);
       moveTray();
       break;
   } 
@@ -178,6 +181,8 @@ void loop() {
   } 
   stateMachine();
   EVERY_N_MILLISECONDS( 50 ) {
+    //setCapsul(0);
+    //Serial.println(cap->getParam("CapType"));
     printStatos();
     sendToEsp8266();
     if(amountFeedback != amount) SerialBT.print(set_amount + amount +"\n");

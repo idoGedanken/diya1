@@ -46,11 +46,11 @@ bool StepMotor::move(double targetPos, double movingSpeed) {
     if(abs(targetPos - _pos) <= 0.0234 ){
         return true;
     }
-    if(isMotorStuck(1000) && false){
+    if(isMotorStuck(1600)){
         //Serial.println("stuck encoder eror");
         return true;
     }
-    if ((micros() - _lestStep) > max((int)(625 / max(0.0 ,movingSpeed)), 175)) {
+    if ((micros() - _lestStep) > max((int)(625 / max(0.5,movingSpeed)), 175)) {
         digitalWrite(_motorPin, HIGH);
         digitalWrite(_motorPin, LOW);
         _motorStuck ++;

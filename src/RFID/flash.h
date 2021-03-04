@@ -9,7 +9,7 @@ void writeFile(String data){
   }
   File file = SPIFFS.open("/UnsavedCapsules.txt",FILE_WRITE);
   if(file.print(data)){
-    Serial.println("File was written");
+    //Serial.println("File was written");
   }else{
     Serial.println("File write failed");
   }
@@ -25,7 +25,7 @@ void writeFile(String data){
 int findUID( String UID, String txtFile, int* startIndex, int * endIndex){
   int i;
   *startIndex = txtFile.indexOf("UID: "+UID+", ");
-  Serial.println(*startIndex);
+  //Serial.println(*startIndex);
   if (*startIndex <0){
    Serial.println("Error: can not find capsule in cache");
    return 0;

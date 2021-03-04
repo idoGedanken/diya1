@@ -29,7 +29,7 @@ class StepMotor {
     void setDirFeedback(bool DirFeedback);
     void readEncoder();
     void calcMotorDir(double TargetPos);
-    bool isMotorStuck(int steps=70);
+    bool isMotorStuck(int steps=75);
     bool move(double targetPos, double movingSpeed = 3.6);
 };
 

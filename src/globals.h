@@ -16,7 +16,7 @@ StepMotor peripheral(26,32);
 StepMotor piston(27,35);
 
 double  peripheralCellsHeight = 16.5 ;
-double  mixserInterfaceHeight = 22.7;
+double  mixserInterfaceHeight = 22.4;
 double  mixsingMaxHight = 20 ;
 double  mixsingMinHight = 8 ;
 double  mixserPenetrationHight = 29.06 ;
