@@ -1,6 +1,9 @@
 #include "Arduino.h"
 #include "tests.h"
-// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom  -> motors -> buttons -> tests
+// wireCom -> globals -> flash-> rfidInOut->rfCapsule-> utils -> BTcom  -> motors -> buttons -> tests -> main
+
+
+
 void sendToEsp8266() {
   if (isInWifiData('A'))amount += 1;
   if (isInWifiData('S')) amount -= 1;
@@ -12,7 +15,7 @@ void sendToEsp8266() {
   wifiData.color = RFIDColor[0];//findNumInArray(RFIntID,RFIntIDArray)
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &wifiData, sizeof(wifiData));
   if (result == ESP_OK)clenWifiData();
-  else Serial.println("Error sending the dwifi ata");
+  else Serial.println("Error sending wifi data");
 }
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   wifisStatus = status == ESP_NOW_SEND_SUCCESS ? "S" : "F";
@@ -105,13 +108,16 @@ void setup() {
   Serial.println("SETUP COMPLITED");
   readSensors();
   setStepMotorDirs();
+  //TestCupsol();
   homing();
   disableMotors();
   Serial.println("HOMING COMPLITED");
+  
 
 }
 void loop() {
   // test();
+
   switch (stage) {
     case 'm': //mixing
       if (stageFeedback != stage) {
@@ -123,9 +129,9 @@ void loop() {
         mix();
         finishMixing = true;
         maxAmount = circleNumLeds - amuntUsed ;
-        cap->setParam("CapType",(unsigned int)1);
         cap->setParam("currentAmount",(unsigned int)amuntUsed);
-        cap->setParam("mixed",(unsigned int)mixedCapsule);
+        if( mixedCapsule == true)cap->setParam("mixed",(unsigned int)1);
+        else cap->setParam("mixed",(unsigned int)0);
       }
       break;
     case 'r'://Ready to mix
@@ -147,6 +153,7 @@ void loop() {
         String ButtonsArray[] = {"BT", "Battery", "Tray"};
         copyEnableArry(ButtonsArray);
       }
+      //setCapsul(1);
       moveTray();
       break;
   } 
@@ -174,6 +181,8 @@ void loop() {
   } 
   stateMachine();
   EVERY_N_MILLISECONDS( 50 ) {
+    //setCapsul(0);
+    //Serial.println(cap->getParam("CapType"));
     printStatos();
     sendToEsp8266();
     if(amountFeedback != amount) SerialBT.print(set_amount + amount +"\n");

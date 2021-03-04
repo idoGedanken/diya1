@@ -4,9 +4,12 @@
 #include "globals.h"
 
 void writeFile(String data){
+  if(data==""){
+    return;
+  }
   File file = SPIFFS.open("/UnsavedCapsules.txt",FILE_WRITE);
   if(file.print(data)){
-    Serial.println("File was written");
+    //Serial.println("File was written");
   }else{
     Serial.println("File write failed");
   }
@@ -22,7 +25,7 @@ void writeFile(String data){
 int findUID( String UID, String txtFile, int* startIndex, int * endIndex){
   int i;
   *startIndex = txtFile.indexOf("UID: "+UID+", ");
-  Serial.println(*startIndex);
+  //Serial.println(*startIndex);
   if (*startIndex <0){
    Serial.println("Error: can not find capsule in cache");
    return 0;
@@ -43,12 +46,12 @@ int findUID( String UID, String txtFile, int* startIndex, int * endIndex){
 */
 void DeleteUIDFromFile( String txtFile, String UID){
   //File file = SPIFFS.open("/UnsavedCapsules.txt",FILE_WRITE);
-  Serial.println("Before delete: " + txtFile);
+  //Serial.println("Before delete: " + txtFile);
   int startIndex, endIndex;
   // Updates the indexes
   if(findUID(UID, txtFile, &startIndex, &endIndex)){
       String capsuleLine = txtFile.substring(startIndex,endIndex);
-      Serial.println("The capsule is: " + capsuleLine);
+      // Serial.println("The capsule is: " + capsuleLine);
       txtFile.remove(startIndex,endIndex - startIndex); //remove(startIndex,leght)
       writeFile(txtFile);
   }
@@ -63,18 +66,21 @@ String readFlash(){
   return txtFile;
 }
 void insertUID(String UIDDATA,String UID){
+  if(UID=="0000"){
+    return;//not supposed to be considered
+  }
   int startIndex, endIndex;
   String flashBuffer = readFlash();
   // Updates the indexes
   if(findUID(UID, flashBuffer, &startIndex, &endIndex)){
     if (flashBuffer.indexOf(UIDDATA)>0){
-      Serial.println(UIDDATA);
-      Serial.println(flashBuffer);
-      Serial.println("sameDataInFlash!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11");
+      // Serial.println(UIDDATA);
+      // Serial.println(flashBuffer);
+      // Serial.println("sameDataInFlash!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11");
       return;
     }else{
       //deletes the prev
-       Serial.println("updateUID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
+      //  Serial.println("updateUID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
       DeleteUIDFromFile( flashBuffer, UID);
     }
   }

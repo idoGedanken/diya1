@@ -16,10 +16,10 @@ class Capsule
      unsigned int dataInLocation = 0;
      dataType = this->mapper->findInMap(key);
      if(dataType){
-        Serial.println("block");
-        Serial.println(dataType->block);
-        Serial.println("offset");
-        Serial.println(dataType->offset);
+        // Serial.println("block");
+        // Serial.println(dataType->block);
+        // Serial.println("offset");
+        // Serial.println(dataType->offset);
         dataInLocation = (unsigned int)data[dataType->block][dataType->offset];
         return dataInLocation;
      }else{
@@ -32,7 +32,7 @@ class Capsule
      int numOfBytes = 0;
      int block = 0;
      int offset = 0;
-     unsigned int datainLocation = 0;
+     //unsigned int datainLocation = 0;
      dataType = this->mapper->findInMap(key);
      if(dataType){
       numOfBytes = dataType->numOfBytes;
@@ -42,8 +42,8 @@ class Capsule
          if (offset + i < 4){
           //saves the byte in data using bitwise
             data[dataType->block][(dataType->offset) + i ] = value>>(i*8) & 0xFF;
-            Serial.println("new value:");
-            Serial.println(data[dataType->block][(dataType->offset) + i ]);
+            // Serial.println("new value:");
+            // Serial.println(data[dataType->block][(dataType->offset) + i ]);
             
          }else{
           //next block
@@ -70,7 +70,7 @@ class Capsule
    for (int i = 0; i <= END_BLOCK; i++)
   { 
     for (int j=0;j<4;j++){
-       Serial.println(data[i][j]);
+        Serial.println(data[i][j]);
        
     }
   }
@@ -111,7 +111,7 @@ void extractUIDFromFlash(String flashBuffer,int startIndex,int endIndex) {
     unsigned int val;
     String valBuff;
     String capsuleLine = flashBuffer.substring(startIndex,endIndex);
-    Serial.println(capsuleLine);
+    // Serial.println(capsuleLine);
     int numberofelements = 0; for(auto c: flashParams) { numberofelements++; };
     for (int i=0;i<numberofelements;i++){
       valBuff = "";
@@ -123,10 +123,10 @@ void extractUIDFromFlash(String flashBuffer,int startIndex,int endIndex) {
           valBuff += capsuleLine[valIndex];
           valIndex++;
         }
-        Serial.println("val:");
-        Serial.println(valBuff);
+        // Serial.println("val:");
+        // Serial.println(valBuff);
         val = myAtoi(valBuff);
-        Serial.println(val);
+        // Serial.println(val);
         cap->setParam(flashParams[i],val);
     }
 }

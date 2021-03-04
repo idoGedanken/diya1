@@ -89,7 +89,7 @@ Inserts key with location to map
         }
         
       } else {
-        Serial.println(F("unkown index"));
+        //Serial.println(F("unkown index"));
         return;
       }
     }
@@ -104,15 +104,15 @@ Inserts key with location to map
    DataTypeRfid * findInMap(String key){
       int counterIndex = this->indexCounter - 1;
       for (int i=0;i <= counterIndex;i++){
-        Serial.println("key:");
-        Serial.println(key);
-        Serial.println("checking:");
-        Serial.println(mapLocation.arrayOfDataType[i].key);
+        // Serial.println("key:");
+        // Serial.println(key);
+        // Serial.println("checking:");
+        // Serial.println(mapLocation.arrayOfDataType[i].key);
         if (key == this->mapLocation.arrayOfDataType[i].key){
             return &((this->mapLocation).arrayOfDataType[i]);
         }
       }
-      Serial.println(F("unkown key"));
+      // Serial.println(F("unkown key"));
       return NULL;
     }
 /**
